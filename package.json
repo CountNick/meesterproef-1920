@@ -22,6 +22,8 @@
   "homepage": "https://github.com/CountNick/meesterproef-1920#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "ejs": "^3.1.3",
     "express": "^4.17.1",
     "node-fetch": "^2.6.0"
   },
