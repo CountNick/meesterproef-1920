@@ -11,7 +11,7 @@ app
     .use(bodyParser.urlencoded({ extended: true }))
     .set("views", __dirname + "/view/pages")
     .set("view engine", "ejs")
-    .get('/', Router.home)
+    .get('/', Router.homeRoute)
 
 app.listen(port, () => {
     console.log(`Dev app listening on port: ${port}`)

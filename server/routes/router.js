@@ -1,5 +1,5 @@
-function home(req, res){
+const homeRoute = (req, res) => {
     res.send('Hello world!')
 }
 
-module.export = {home} 
+module.exports = { homeRoute } 
