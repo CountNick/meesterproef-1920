@@ -1,27 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+    <%- include( '../partials/head.ejs') %>
 <body>
-    
-<img src="<%= data.images[0].url %>" alt="">
 
-<h1> Name: <%= data.display_name %></h1>
 
-<h2><%= data.href %></h2>
-<h2>ID: <%= data.id %></h2>
 
-<h2>information: </h2>
-<ul>
-    <li><%= data.country %></li>
-    <li><%= data.email %></li>
-    <li>Followers: <%= data.followers.total %></li>
-    <li></li>
-    <li></li>
-</ul>
+<%- include( '../partials/nav.ejs'), data, token %>
+
+
+
+
+
 
 </body>
 </html>

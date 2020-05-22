@@ -30,7 +30,7 @@ let stateKey = 'spotify_auth_state';
   
 
 app
-    .use(express.static(path.join(__dirname, "static")))
+    .use(express.static(path.join(__dirname + "/static")))
     .use(bodyParser.urlencoded({ extended: true }))
     .use(cors())
     .use(cookieParser())
@@ -93,7 +93,8 @@ app
         request.get(options, (error, response, body) => {
             console.log(body);
             res.render('logged-in', {
-                data: body
+                data: body,
+                token: access_token
             })
           });
         } else{
@@ -132,6 +133,37 @@ app
             })
         }
     })
+})
+.get('/searchResults', (req, res) => {
+    
+    console.log(req.query)
+
+    let artist = req.query.searchValue
+    let access_token = req.query.token
+    let userData = JSON.parse(req.query.data)
+
+    let options = {
+        url: `https://api.spotify.com/v1/search?q=${artist}&type=track%2Cartist&market=US&limit=10&offset=5`,
+        headers: { 'Authorization': 'Bearer ' + access_token },
+        json: true
+    };
+
+    request.get(options, (error, response, body) => {
+        // console.log('body: ', body)
+        // console.log('tracks: ', body.tracks.items[0].album)
+        // console.log('tracks: ', body.tracks)
+        // console.log('artists: ', body.artists)
+     
+
+        res.render("search-results", {
+            trackData: body.tracks,
+            data: userData,
+            token: access_token
+        })
+    })
+
+
+        
 })
 
 app.listen(port, () => {

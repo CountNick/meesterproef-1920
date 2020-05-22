@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <%- include( '../partials/head.ejs') %>
+
+<body> 
+    <%console.log(data)%>
+
+
+
+    <%- include( '../partials/nav.ejs'), data, token %>
+
+    <%- include( '../partials/result-list.ejs'), trackData %>
+
+    <% console.log('trackData from template: ', trackData) %>
+
+
+</body>
+
+</html>
