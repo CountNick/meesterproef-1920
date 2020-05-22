@@ -5,6 +5,7 @@ body{
 
 nav{
     display: flex;
+    justify-content: space-between;
 }
 
 .profile-pic{
@@ -15,4 +16,19 @@ nav{
 .profile-link{
     display: flex;
     justify-content: flex-end;
+}
+
+iframe{
+    width:100%;
+    height: 5rem;
+}
+
+.track-section{
+    background: black;
+    color: white;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    border-radius: .5rem;
 }

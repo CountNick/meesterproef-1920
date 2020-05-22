@@ -6,10 +6,10 @@ const bodyParser = require('body-parser')
 const path = require('path')
 const app = express()
 const fetch = require('node-fetch')
-const request = require('request')
 const cors = require('cors')
 const querystring = require('querystring')
 const cookieParser = require('cookie-parser')
+const { URLSearchParams } = require('url');
 
 /**
  * Generates a random string containing numbers and letters
@@ -57,54 +57,59 @@ app
             }))
         } else {
             res.clearCookie(stateKey)
-        
 
-        let authOptions = {
-            url: 'https://accounts.spotify.com/api/token',
-            form: {
-                code: code,
-                redirect_uri: process.env.REDIRECT_URI,
-                grant_type: 'authorization_code'
-            },
+        let form = {
+            code: code,
+            redirect_uri: process.env.REDIRECT_URI,
+            grant_type: 'authorization_code'
+        }
+
+        const params = new URLSearchParams();
+
+        for(key in form){
+            params.append(key, form[key])
+        }
+
+
+        fetch(`https://accounts.spotify.com/api/token`, {
+            method: 'post',
             headers: {
                 'Authorization': 'Basic ' + (new Buffer.from(process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET).toString('base64'))
             },
-            json: true
-        }
-
-        request.post(authOptions, (error, response, body) => {
-            
-            if(!error && response.statusCode === 200){
-
-            console.log('body: ', body)
-            
-            
+            body: params,
+            'Content-Type':'application/x-www-form-urlencoded'
+        })
+        .then(res => res.json())
+        .then(body => {
             let access_token = body.access_token
             let refresh_token = body.refresh_token
 
-
             let options = {
-                url: 'https://api.spotify.com/v1/me',
                 headers: { 'Authorization': 'Bearer ' + access_token },
-                json: true
               };
 
-                      // use the access token to access the Spotify Web API
-        request.get(options, (error, response, body) => {
-            console.log(body);
-            res.render('logged-in', {
-                data: body,
-                token: access_token
-            })
-          });
-        } else{
-            res.redirect('/' + 
-                querystring.stringify({
-                    error: 'invalid_token'
-                }))
-        }
-    })
-
+            fetch(`https://api.spotify.com/v1/me`, options)
+                .then(res => {
+                    if(!res.ok) {
+                        
+                        res.redirect('/' + 
+                            querystring.stringify({
+                                error: 'invalid_token'
+                            }))
+                    } else{
+                        return res.json()
+                    }
+                })
+                .then(body => {
+                    res.render('logged-in', {
+                    data: body,
+                    token: access_token
+                    })
+                })
+                .catch(err => {
+                    throw Error(err);
+                })
+        })
 }
         
 })
@@ -113,25 +118,32 @@ app
     //requesting acces token from refresh token
     let refresh_token = req.query.refresh_token
 
-    const authOptions = {
-        url: 'https://accounts.spotify.com/api/token',
+    let form = {
+        grant_type: 'refresh_token',
+        refresh_token: refresh_token
+    }
+
+    const params = new URLSearchParams();
+
+    for(key in form){
+        params.append(key, form[key])
+    }
+
+    fetch(`https://accounts.spotify.com/api/token`, {
+        method: 'post',
         headers: {
             'Authorization': 'Basic ' + (new Buffer.from(process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET).toString('base64'))
         },
-        form: {
-            grant_type: 'refresh_token',
-            refresh_token: refresh_token
-        },
-        json: true
-    }
+        body: params,
+        'Content-Type':'application/x-www-form-urlencoded'
+    })
+    .then(res => res.json())
+    .then(body => {
+        let access_token = body.access_token
 
-    request.post(authOptions, (error, response, body) => {
-        if(!error && response.statusCode === 200){
-            let access_token = body.access_token
-            res.send({
-                'access_token': access_token
-            })
-        }
+        res.send({
+            'access_token': access_token
+        })
     })
 })
 .get('/searchResults', (req, res) => {
@@ -143,27 +155,23 @@ app
     let userData = JSON.parse(req.query.data)
 
     let options = {
-        url: `https://api.spotify.com/v1/search?q=${artist}&type=track%2Cartist&market=US&limit=10&offset=5`,
+        // url: `https://api.spotify.com/v1/search?q=${artist}&type=track%2Cartist&market=US&limit=10&offset=5`,
+        method: 'GET',
         headers: { 'Authorization': 'Bearer ' + access_token },
-        json: true
-    };
-
-    request.get(options, (error, response, body) => {
-        // console.log('body: ', body)
-        // console.log('tracks: ', body.tracks.items[0].album)
-        // console.log('tracks: ', body.tracks)
-        // console.log('artists: ', body.artists)
-     
-
-        res.render("search-results", {
-            trackData: body.tracks,
-            data: userData,
-            token: access_token
-        })
-    })
-
-
         
+    };
+    
+    fetch(`https://api.spotify.com/v1/search?q=${artist}&type=track%2Cartist&market=US&limit=10&offset=5`, options)
+        .then(res => res.json())
+        .then(body => {
+
+            res.render("search-results", {
+                trackData: body.tracks,
+                data: userData,
+                token: access_token
+            })
+
+        })        
 })
 
 app.listen(port, () => {

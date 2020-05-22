@@ -30,7 +30,8 @@
     "node-fetch": "^2.6.0",
     "query-string": "^6.12.1",
     "request": "^2.88.2",
-    "request-promise": "^4.2.5"
+    "request-promise": "^4.2.5",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
