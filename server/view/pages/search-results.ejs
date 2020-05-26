@@ -4,16 +4,123 @@
     <%- include( '../partials/head.ejs') %>
 
 <body> 
-    <%console.log(data)%>
 
+    
 
 
     <%- include( '../partials/nav.ejs'), data, token %>
 
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+
+    <script>
+        const token = `<%= token %>`
+    </script>
+
     <%- include( '../partials/result-list.ejs'), trackData %>
 
-    <% console.log('trackData from template: ', trackData) %>
+    
 
+
+
+    <script>
+
+        let currentUri
+        console.log('current uri to be played: ', currentUri)
+        const playButtonList = document.querySelectorAll('.playButton')
+
+        playButtonList.forEach((playButton) => {
+            console.log(playButton)
+
+            playButton.addEventListener('click', event => {
+                currentUri = event.target.id
+            })
+        })
+
+
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const player = new Spotify.Player({
+                name: 'Ringo Pro player',
+                getOAuthToken: cb => {cb(token)}
+            })
+
+              // Error handling
+            player.addListener('initialization_error', ({ message }) => { console.error(message); });
+            player.addListener('authentication_error', ({ message }) => { console.error(message); });
+            player.addListener('account_error', ({ message }) => { console.error(message); });
+            player.addListener('playback_error', ({ message }) => { console.error(message); });
+            
+            player.getCurrentState().then(state => {
+                if(!state){
+                    console.error('User is not playing music through the Web Playback SDK')
+                    return
+                }
+
+                let {
+                    current_track,
+                    next_tracks: [next_track]
+                } = state.track_window
+
+                console.log('Currently Playing', current_track);
+                console.log('Playing Next', next_track);
+            })
+
+            // Playback status updates
+            player.addListener('player_state_changed', ({
+                position,
+                duration,
+                track_window: {current_track}
+            }) => {
+                console.log('Currnetly Playing: ', current_track)
+                console.log('Position in Song: ', position)
+                console.log('Duration of Song: ', duration)
+            });
+
+
+            
+            // Ready
+            player.addListener('ready', ({ device_id }) => {
+                console.log('Ready with Device ID', device_id);
+
+                const play = ({
+                    spotify_uri,
+                    playerInstance: {
+                        _options: {
+                            getOAuthToken,
+                            id
+                        }
+                    }
+                }) => {
+                    getOAuthToken(access_token => {
+                        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({uris: [spotify_uri]}),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${access_token}`
+                            }
+                        })
+                    })
+                }
+                
+                play({
+                    playerInstance: player,
+                    spotify_uri: '<%= trackData %>',
+                })
+
+            });
+
+            // Not Ready
+            player.addListener('not_ready', ({ device_id }) => {
+                console.log('Device ID has gone offline', device_id);
+            });
+
+            // Connect to the player!
+            player.connect();
+
+        }
+
+    </script>
 
 </body>
 
