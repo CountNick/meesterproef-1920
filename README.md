@@ -1,6 +1,6 @@
 # Meesterproef 
 
-In this repository you'll find the [product biography]()
+In this repository you'll find the [product biography](https://github.com/CountNick/meesterproef-1920/wiki)
 
 
 
